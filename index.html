@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Spin — MY.GAMES Market</title>
+<style>
+  /*
+   * Design tokens extracted from:
+   * my-games-market-front — palette.scss, semanticColors.scss, spacings.scss, typography.scss, mixins.scss
+   */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;550;600;650;700&display=swap');
+
+  /* ── Tokens ── */
+  :root {
+    /* palette */
+    --gray-100: #dedede;
+    --gray-200: #c2c2c2;
+    --gray-300: #a7a7a7;
+    --gray-400: #6d6d72;
+    --gray-500: #414141;
+    --gray-600: #303030;
+    --gray-700: #1e1e1e;
+    --gray-800: #1c1c1c;
+    --gray-900: #141414;
+    --blue-400: #3079ff;
+    --blue-500: #005aff;
+    --blue-600: #004cd6;
+    --green-500: #0fc31e;
+    /* semantic */
+    --colorBgLayout: #0a0a0a;
+    --colorBgContainer: #141414;
+    --colorBgElevated: #1f1f1f;
+    --colorBgSpotlight: #2d2d2d;
+    --colorText: #ffffff;
+    --colorTextSecondary: rgba(255,255,255,0.65);
+    --colorTextTertiary: rgba(255,255,255,0.45);
+    --colorTextQuaternary: rgba(255,255,255,0.25);
+    --colorTextDisabled: rgba(255,255,255,0.25);
+    --colorBorder: #424242;
+    --colorBorderSecondary: #303030;
+    --colorFill: rgba(255,255,255,0.18);
+    --colorFillSecondary: rgba(255,255,255,0.12);
+    --colorFillTertiary: rgba(255,255,255,0.08);
+    --colorPrimary: #005aff;
+    --colorPrimaryHover: #3c89e8;
+    --colorLink: #3079ff;
+    --colorSplit: rgba(255,255,255,0.1);
+    --colorBgMask: rgba(0,0,0,0.65);
+    /* spacings */
+    --base4: 4px;
+    --base8: 8px;
+    --base12: 12px;
+    --base16: 16px;
+    --base24: 24px;
+    --base32: 32px;
+    --base48: 48px;
+    --borderRadius: 8px;
+    --borderRadiusFull: 9999px;
+    /* typography */
+    --fontWeightNormal: 400;
+    --fontWeightMedium: 550;
+    --fontWeightSemibold: 600;
+    --fontWeightBold: 700;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; border: none; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; overflow-x: hidden; }
+
+  body {
+    min-height: 100vh;
+    background: var(--colorBgLayout);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--colorText);
+    font-size: 14px;
+    line-height: 22px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  a { color: var(--colorLink); text-decoration: none; }
+  a:hover { color: var(--colorPrimaryHover); }
+
+  /* ============================= LAYOUT ============================= */
+  .page-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--base32);
+    overflow: hidden;
+  }
+
+  /* ============================= HEADER ============================= */
+  .site-header {
+    border-bottom: 1px solid var(--colorSplit);
+  }
+
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--base32);
+  }
+
+  .breadcrumb {
+    padding-top: var(--base16);
+    font-size: 12px;
+    line-height: 20px;
+    color: var(--colorTextTertiary);
+  }
+  .breadcrumb a { color: var(--colorTextTertiary); }
+  .breadcrumb a:hover { color: var(--colorTextSecondary); }
+  .breadcrumb .sep { margin: 0 6px; }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--base16) 0;
+  }
+
+  .game-info {
+    display: flex;
+    align-items: center;
+    gap: var(--base12);
+  }
+
+  .game-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    overflow: hidden;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .game-title {
+    font-size: 20px;
+    font-weight: var(--fontWeightSemibold);
+    line-height: 28px;
+    color: var(--colorText);
+  }
+
+  .user-balance {
+    display: flex;
+    align-items: center;
+    padding: 4px 15px;
+    height: 32px;
+    gap: var(--base8);
+    border-radius: var(--borderRadiusFull);
+    background: var(--gray-600);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 22px;
+    color: var(--colorText);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .user-balance:hover { background: var(--gray-500); }
+  .user-balance .coin { font-size: 16px; }
+  .user-balance .chevron { margin-left: 2px; opacity: .5; }
+
+  /* Navigation tabs */
+  .main-nav {
+    display: flex;
+    gap: 0;
+  }
+
+  .main-nav a {
+    position: relative;
+    padding: var(--base12) var(--base16) 14px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 22px;
+    color: var(--colorTextSecondary);
+    text-decoration: none;
+    transition: color .15s;
+    white-space: nowrap;
+  }
+  .main-nav a:first-child { padding-left: 0; }
+  .main-nav a:hover { color: var(--colorText); }
+  .main-nav a.active { color: var(--colorText); }
+  .main-nav a.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--colorText);
+  }
+
+  /* ============================= EVENT FILTER PILLS ============================= */
+  .sub-nav {
+    display: flex;
+    gap: var(--base8);
+    flex-wrap: wrap;
+    margin-top: var(--base8);
+  }
+
+  .pill {
+    padding: 5px 16px;
+    border-radius: var(--borderRadiusFull);
+    font-size: 12px;
+    font-weight: var(--fontWeightSemibold);
+    line-height: 20px;
+    font-family: inherit;
+    background: var(--colorFillTertiary);
+    color: var(--colorTextSecondary);
+    cursor: pointer;
+    border: none;
+    transition: all .15s;
+  }
+  .pill:hover { background: var(--colorFillSecondary); color: var(--colorText); }
+  .pill.active {
+    background: var(--colorPrimary);
+    color: var(--colorText);
+  }
+
+  /* ============================= EVENT HEADER ============================= */
+  .event-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--base12);
+    margin: var(--base32) 0;
+  }
+
+  .event-title {
+    font-size: 30px;
+    font-weight: var(--fontWeightSemibold);
+    line-height: 38px;
+    color: var(--colorText);
+  }
+
+  /* ============================= CONTENT COLUMNS ============================= */
+  .content-area {
+    display: flex;
+    gap: var(--base8);
+    align-items: stretch;
+    min-width: 0;
+  }
+
+  .card {
+    background: var(--colorBgContainer);
+    border-radius: var(--borderRadius);
+    overflow: hidden;
+  }
+
+  /* Left column */
+  .card-left {
+    flex: 1 0 300px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--base12);
+  }
+
+  .block {
+    position: relative;
+    display: flex;
+    padding: var(--base32);
+    flex-direction: column;
+    gap: var(--base24);
+    background: var(--colorBgContainer);
+    border-radius: var(--borderRadius);
+    width: 100%;
+  }
+
+  .block-title {
+    font-size: 20px;
+    font-weight: var(--fontWeightSemibold);
+    line-height: 28px;
+    color: var(--colorText);
+  }
+
+  .block-text {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 22px;
+    color: var(--colorTextSecondary);
+    max-width: 540px;
+  }
+
+  .btn-outlined {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    padding: 0 15px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 22px;
+    color: var(--colorText);
+    background: transparent;
+    border: 1px solid var(--colorBorder);
+    border-radius: var(--borderRadius);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-outlined:hover {
+    border-color: var(--colorPrimaryHover);
+    color: var(--colorPrimaryHover);
+  }
+
+  /* Right column */
+  .card-right {
+    flex: 1 0 300px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .block-right {
+    padding: var(--base32);
+    padding-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--base24);
+    background: var(--colorBgContainer);
+    border-radius: var(--borderRadius);
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ============================= WHEEL ============================= */
+  .wheel-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 16px 0;
+  }
+
+  .wheel-stage {
+    position: relative;
+    width: 360px;
+    height: 360px;
+    margin: 0 auto;
+    max-width: calc(100vw - 96px);
+    max-height: calc(100vw - 96px);
+    flex-shrink: 0;
+  }
+
+  .wheel-stage::before {
+    content: '';
+    position: absolute;
+    inset: -10px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--blue-400), #6d28d9, var(--blue-400), #6d28d9, var(--blue-400));
+    opacity: .2;
+    filter: blur(4px);
+    z-index: 0;
+    animation: glow 5s ease-in-out infinite;
+  }
+
+  @keyframes glow {
+    0%, 100% { opacity: .15; }
+    50%      { opacity: .28; }
+  }
+
+  .wheel-rim {
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    background: #111827;
+    border: 2px solid rgba(48,121,255,.2);
+    box-shadow: inset 0 0 12px rgba(0,0,0,.5);
+    z-index: 1;
+  }
+
+  .wheel-rim .tick {
+    position: absolute;
+    width: 2px; height: 7px;
+    background: var(--colorFill);
+    border-radius: 1px;
+    top: 3px; left: calc(50% - 1px);
+    /* JS sets transform-origin dynamically */
+  }
+
+  canvas#wheel {
+    position: relative;
+    z-index: 2;
+    border-radius: 50%;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hub {
+    position: absolute;
+    z-index: 3;
+    width: 13.3%; height: 13.3%;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: linear-gradient(150deg, #1e293b, #0f172a);
+    border: 2px solid rgba(48,121,255,.25);
+    box-shadow: 0 0 10px rgba(0,90,255,.15), inset 0 1px 3px rgba(255,255,255,.05);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .hub-inner {
+    width: 54%; height: 54%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 38%, var(--blue-400), var(--blue-500));
+    box-shadow: inset 0 -2px 3px rgba(0,0,0,.3);
+  }
+
+  .pointer {
+    position: absolute;
+    z-index: 4;
+    top: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,.5));
+  }
+  .pointer svg { display: block; width: 28px; height: auto; }
+
+  /* ============================= SPIN BUTTON ============================= */
+  .spin-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--base8);
+  }
+
+  .btn-spin {
+    display: flex;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 40px;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+    color: var(--colorText);
+    border: none;
+    border-radius: var(--borderRadius);
+    cursor: pointer;
+    background: var(--colorPrimary);
+    box-shadow: none;
+    transition: all .15s;
+  }
+  .btn-spin:hover:not(:disabled) {
+    background: var(--colorPrimaryHover);
+  }
+  .btn-spin:active:not(:disabled) { opacity: .85; }
+  .btn-spin:disabled {
+    background: var(--colorFillTertiary);
+    color: var(--colorTextDisabled);
+    cursor: not-allowed;
+  }
+
+  .no-coupons-msg {
+    font-size: 12px;
+    line-height: 20px;
+    color: var(--colorTextTertiary);
+    text-align: center;
+    max-width: 300px;
+    opacity: 0;
+    transition: opacity .3s;
+  }
+  .no-coupons-msg.visible { opacity: 1; }
+
+  /* ============================= UPSELL OFFER ============================= */
+  .upsell-offer {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 340px;
+    margin: 16px auto 0;
+    padding: 20px 24px 18px;
+    border-radius: 14px;
+    background:
+      linear-gradient(135deg, rgba(240,195,35,.12) 0%, rgba(255,140,0,.08) 50%, rgba(100,42,181,.10) 100%),
+      rgba(0,0,0,.45);
+    border: 1px solid rgba(240,195,35,.28);
+    box-shadow:
+      0 0 24px rgba(240,195,35,.08),
+      inset 0 1px 0 rgba(255,255,255,.06);
+    text-align: center;
+    animation: upsell-appear .4s ease;
+  }
+  .upsell-offer.visible { display: flex; }
+
+  @keyframes upsell-appear {
+    from { opacity: 0; transform: translateY(8px) scale(.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .upsell-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: linear-gradient(90deg, #f0c323, #ff8c00);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: #1a0e00;
+    line-height: 18px;
+  }
+
+  .upsell-title {
+    font-size: 15px;
+    font-weight: var(--fontWeightBold);
+    line-height: 22px;
+    color: var(--colorText);
+  }
+
+  .upsell-highlight {
+    color: #f0c323;
+    font-weight: 800;
+  }
+
+  .upsell-desc {
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--colorTextSecondary);
+  }
+
+  .btn-upsell {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #f0c323 0%, #e6a000 50%, #ff8c00 100%);
+    color: #1a0e00;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s, filter .15s;
+    box-shadow: 0 2px 12px rgba(240,195,35,.3), 0 1px 2px rgba(0,0,0,.2);
+  }
+  .btn-upsell:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(240,195,35,.45), 0 2px 4px rgba(0,0,0,.25);
+    filter: brightness(1.05);
+  }
+  .btn-upsell:active {
+    transform: translateY(0);
+    filter: brightness(.95);
+  }
+
+  /* ============================= COUPON BANNER ============================= */
+  .coupon-banner {
+    width: 100%;
+    border-radius: 12px;
+    padding: 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  .coupon-banner-bg {
+    position: absolute;
+    inset: 0;
+    background: url('rush-royale-bg.webp') center 30% / cover no-repeat;
+    z-index: 0;
+  }
+
+  .coupon-banner-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        to bottom,
+        rgba(0,20,60,0.4) 0%,
+        rgba(0,30,80,0.55) 40%,
+        rgba(0,15,50,0.8) 75%,
+        rgba(5,10,30,0.95) 100%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(0,90,255,0.15) 0%,
+        rgba(0,60,180,0.1) 100%
+      );
+  }
+
+  .coupon-banner-content {
+    position: relative;
+    z-index: 1;
+    padding: var(--base16) var(--base24);
+  }
+
+  .coupon-banner-label {
+    font-size: 11px;
+    font-weight: var(--fontWeightBold);
+    line-height: 16px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 6px;
+    text-shadow: 0 1px 4px rgba(0,0,0,.6);
+  }
+
+  .coupon-banner-count {
+    font-size: 48px;
+    font-weight: var(--fontWeightBold);
+    line-height: 1;
+    color: var(--colorText);
+    margin-bottom: 6px;
+    text-shadow: 0 2px 16px rgba(0,0,0,.5), 0 0 40px rgba(48,121,255,.3);
+  }
+
+  .coupon-banner-sub {
+    font-size: 13px;
+    line-height: 18px;
+    color: rgba(255,255,255,0.55);
+    text-shadow: 0 1px 4px rgba(0,0,0,.5);
+  }
+
+  /* Steps */
+  .how-to-start {
+    display: flex;
+    flex-direction: column;
+    gap: var(--base24);
+    width: 100%;
+  }
+
+  .step {
+    display: flex;
+    gap: var(--base12);
+  }
+
+  .step-num {
+    width: 32px; height: 32px;
+    border-radius: var(--borderRadiusFull);
+    background: var(--colorFill);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--colorText);
+    flex-shrink: 0;
+  }
+
+  .step-text {
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 22px;
+    color: var(--colorTextSecondary);
+  }
+
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: var(--colorSplit);
+  }
+
+  /* Pity Timer Bar */
+  .pity-bar-wrap {
+    margin-top: var(--base12);
+    text-align: center;
+  }
+  .pity-bar-label {
+    font-size: 11px;
+    font-weight: var(--fontWeightMedium);
+    line-height: 16px;
+    color: var(--colorTextTertiary);
+    margin-bottom: 6px;
+  }
+  .pity-bar-label span {
+    color: var(--colorTextSecondary);
+    font-weight: var(--fontWeightSemibold);
+  }
+  .pity-bar-track {
+    width: 100%;
+    max-width: 260px;
+    height: 6px;
+    background: var(--colorFillTertiary);
+    border-radius: 3px;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+  .pity-bar-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--blue-500), #6d28d9);
+    transition: width .4s ease;
+  }
+  .pity-bar-fill.ready {
+    background: linear-gradient(90deg, #f0c323, #ff8c00);
+    box-shadow: 0 0 8px rgba(240,195,35,.5);
+    animation: pity-pulse 1s ease-in-out infinite;
+  }
+  @keyframes pity-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .7; }
+  }
+
+  /* Debug Panel */
+  .debug-panel {
+    margin-top: var(--base12);
+    padding: var(--base8) var(--base16);
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 11px;
+    line-height: 18px;
+    color: #d89614;
+    background: rgba(43,33,17,.55);
+    border: 1px dashed rgba(89,66,20,.45);
+    border-radius: 8px;
+    opacity: .5;
+    transition: opacity .3s;
+  }
+  .debug-panel-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(216,150,20,.6);
+    margin-bottom: 4px;
+  }
+  .debug-panel-row {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--base8);
+    padding: 1px 0;
+  }
+  .debug-label {
+    color: rgba(216,150,20,.55);
+  }
+  .debug-result {
+    color: #f0c323;
+    font-weight: 600;
+  }
+  .debug-separator {
+    border: none;
+    border-top: 1px dashed rgba(89,66,20,.35);
+    margin: 6px 0;
+  }
+  .debug-section-title {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    color: rgba(216,150,20,.45);
+    margin-bottom: 2px;
+  }
+  .analytics-log {
+    max-height: 90px;
+    overflow-y: auto;
+    font-size: 10px;
+    line-height: 15px;
+    color: rgba(216,150,20,.7);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(216,150,20,.25) transparent;
+  }
+  .analytics-log::-webkit-scrollbar { width: 4px; }
+  .analytics-log::-webkit-scrollbar-thumb { background: rgba(216,150,20,.25); border-radius: 2px; }
+  .analytics-log div { padding: 1px 0; }
+  .analytics-log .tag { color: rgba(100,200,255,.7); }
+
+  /* DEV test button */
+  .btn-dev {
+    width: 100%;
+    padding: var(--base8) var(--base16);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: var(--fontWeightSemibold);
+    line-height: 20px;
+    color: #d89614;
+    background: #2b2111;
+    border: 1px dashed #594214;
+    border-radius: var(--borderRadius);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-dev:hover {
+    background: #443111;
+    border-color: #7c5914;
+  }
+
+  /* ============================= LEGAL / FOOTER ============================= */
+  .legal {
+    margin-top: var(--base32);
+    color: var(--colorTextSecondary);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 22px;
+  }
+  .legal a { color: var(--colorLink); }
+  .legal a:visited { color: var(--blue-400); }
+  .legal a:hover { text-decoration: underline; }
+
+  /* ============================= MODAL ============================= */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s;
+  }
+  .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+  .modal {
+    position: relative;
+    background:
+      radial-gradient(50% 50% at 50% 50%, rgba(255,255,255,0.28) 0%, rgba(0,0,0,0) 100%),
+      var(--colorBgContainer);
+    border: none;
+    border-radius: var(--base16);
+    padding: 48px;
+    text-align: center;
+    max-width: 480px;
+    width: 90%;
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    transform: scale(.9);
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  .modal-overlay.active .modal { transform: scale(1); }
+
+  /* Close button */
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--colorTextSecondary);
+    transition: color .15s, background .15s;
+    font-size: 0;
+  }
+  .modal-close:hover { background: var(--colorFillTertiary); color: var(--colorText); }
+  .modal-close svg { width: 20px; height: 20px; }
+
+  /* Top section: game row + received text */
+  .modal-top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--base32);
+  }
+
+  .modal-game-row {
+    display: flex;
+    align-items: center;
+    gap: var(--base8);
+    font-size: 14px;
+    font-weight: var(--fontWeightMedium);
+    line-height: 22px;
+    color: var(--colorText);
+  }
+
+  .modal-game-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+
+  .modal-received {
+    font-size: 16px;
+    font-weight: var(--fontWeightSemibold);
+    line-height: 24px;
+    color: var(--colorText);
+  }
+
+  .modal-prize {
+    font-size: 24px;
+    font-weight: var(--fontWeightBold);
+    line-height: 32px;
+    color: #f0c323;
+  }
+
+  /* Middle section: prize icon */
+  .modal-reward-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-reward-icon img {
+    filter: drop-shadow(0 4px 24px rgba(240,195,35,.25));
+  }
+
+  /* Bottom section: button */
+  .modal-buttons {
+    width: 312px;
+    max-width: 100%;
+  }
+
+  .btn-claim {
+    display: flex;
+    width: 100%;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--base24);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+    color: var(--colorText);
+    border: 1px solid var(--colorBorder);
+    border-radius: var(--borderRadius);
+    cursor: pointer;
+    background: transparent;
+    transition: all .15s;
+  }
+  .btn-claim:hover {
+    border-color: var(--colorPrimaryHover);
+    color: var(--colorPrimaryHover);
+    background: var(--colorFillTertiary);
+  }
+
+  /* Confetti */
+  #confetti { position: fixed; inset: 0; z-index: 99; pointer-events: none; }
+
+  /* ============================= RESPONSIVE ============================= */
+  @media (max-width: 999px) {
+    .content-area { flex-direction: column; }
+    .card-left, .card-right { flex: 1 0 auto; min-width: 0; }
+    .event-header { flex-direction: column; align-items: flex-start; }
+    .block-right { padding: var(--base24); }
+  }
+
+  @media (max-width: 599px) {
+    .page-wrap, .header-inner { padding-left: var(--base16); padding-right: var(--base16); }
+    .block { padding: var(--base16); }
+    .block-right { padding: var(--base16); }
+    .wheel-stage { max-width: calc(100vw - 64px); max-height: calc(100vw - 64px); }
+    .main-nav { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .main-nav::-webkit-scrollbar { display: none; }
+    .header-top { flex-wrap: wrap; gap: var(--base8); }
+    .game-title { font-size: 16px; line-height: 24px; }
+    .event-title { font-size: 24px; line-height: 32px; }
+    .coupon-banner { min-height: 110px; }
+    .coupon-banner-content { padding: var(--base16); }
+    .coupon-banner-count { font-size: 36px; }
+    .modal { padding: 24px 16px 64px; min-height: 360px; }
+    .modal-buttons { width: 80%; }
+    .modal-reward-icon img { width: 90px; height: 90px; }
+    .modal-close { top: 12px; right: 12px; width: 36px; height: 36px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== HEADER ==================== -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="breadcrumb">
+      <a href="#">Market</a><span class="sep">/</span><a href="#">Rush Royale</a>
+    </div>
+    <div class="header-top">
+      <div class="game-info">
+        <img class="game-icon" src="rush-royale-logo.png" alt="Rush Royale">
+        <span class="game-title">Rush Royale</span>
+      </div>
+      <div class="user-balance">
+        <span class="coin">🍏</span>
+        92352054
+        <svg class="chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <nav class="main-nav">
+      <a href="#">Home</a>
+      <a href="#">Official APK</a>
+      <a href="#">News</a>
+      <a href="#">Shop</a>
+      <a href="#">Promo codes</a>
+      <a href="#">History</a>
+      <a href="#" class="active">Events</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ==================== BODY CONTENT ==================== -->
+<div class="page-wrap">
+
+  <!-- Event filter pills -->
+  <div class="sub-nav">
+    <button class="pill active">Daily Spin</button>
+    <button class="pill">Hero Tavern</button>
+    <button class="pill">Festival of Talents!</button>
+  </div>
+
+  <!-- Event header -->
+  <div class="event-header">
+    <h1 class="event-title">Daily Spin</h1>
+  </div>
+
+  <!-- Two-column content -->
+  <div class="content-area">
+
+    <!-- LEFT COLUMN -->
+    <div class="card-left">
+      <!-- About block -->
+      <div class="block">
+        <h2 class="block-title">About</h2>
+        <p class="block-text">Try your luck! Spin the wheel every day and win valuable rewards. Coupons are earned through purchases on MY.GAMES Market and daily login.</p>
+
+        <div class="wheel-container">
+          <div class="wheel-stage">
+            <div class="wheel-rim" id="wheelRim"></div>
+            <canvas id="wheel" width="360" height="360"></canvas>
+            <div class="hub"><div class="hub-inner"></div></div>
+            <div class="pointer">
+              <svg width="32" height="42" viewBox="0 0 32 42" fill="none">
+                <defs>
+                  <linearGradient id="ptrGrad" x1="16" y1="0" x2="16" y2="42" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" stop-color="#facc15"/>
+                    <stop offset="1" stop-color="#f59e0b"/>
+                  </linearGradient>
+                </defs>
+                <path d="M16 38 L3 7 A14 14 0 0 1 29 7 Z" fill="url(#ptrGrad)" stroke="#b45309" stroke-width="1"/>
+                <ellipse cx="16" cy="11" rx="4.5" ry="4.5" fill="#fde68a" opacity=".5"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="spin-row">
+          <button class="btn-spin" id="btnSpin">🎰 &nbsp;Spin!</button>
+          <div class="no-coupons-msg" id="noCouponsMsg">Out of coupons! Earn more through purchases or daily login.</div>
+        </div>
+
+        <div class="upsell-offer" id="upsellOffer">
+          <div class="upsell-badge">✦ Special Offer</div>
+          <div class="upsell-title">Want more chances?<br>Get <span class="upsell-highlight">+5 free coupons</span></div>
+          <div class="upsell-desc">Purchase any item on MY.GAMES Market and receive bonus spin coupons instantly!</div>
+          <button class="btn-upsell" id="btnUpsell">🛒 &nbsp;Go to Shop</button>
+        </div>
+
+        <div class="pity-bar-wrap" id="pityBarWrap">
+          <div class="pity-bar-label">Legendary guarantee: <span id="pityCounter">0</span>/10</div>
+          <div class="pity-bar-track">
+            <div class="pity-bar-fill" id="pityBarFill" style="width:0%"></div>
+          </div>
+        </div>
+
+        <div class="debug-panel" id="debugPanel">
+          <div class="debug-panel-title">🛠 Debug Panel</div>
+          <div class="debug-panel-row"><span class="debug-label">Generated Number:</span> <span id="debugNumber">—</span></div>
+          <div class="debug-panel-row"><span class="debug-label">Selected Range:</span> <span id="debugRange">—</span></div>
+          <div class="debug-panel-row"><span class="debug-label">Result:</span> <span id="debugResult" class="debug-result">—</span></div>
+          <div class="debug-panel-row"><span class="debug-label">Pity Counter:</span> <span id="debugPity">0/10</span></div>
+          <div class="debug-panel-row"><span class="debug-label">Total Spins:</span> <span id="debugTotalSpins">0</span></div>
+          <div class="debug-panel-row"><span class="debug-label">Avg Spins / min:</span> <span id="debugAvgSpins">0</span></div>
+          <hr class="debug-separator">
+          <div class="debug-section-title">📡 Analytics Events</div>
+          <div class="analytics-log" id="analyticsLog"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="card-right">
+      <div class="block-right">
+        <h2 class="block-title">Spin Coupons</h2>
+
+        <div class="coupon-banner">
+          <div class="coupon-banner-bg"></div>
+          <div class="coupon-banner-content">
+            <div class="coupon-banner-label">Available spins</div>
+            <div class="coupon-banner-count" id="couponCount">3</div>
+            <div class="coupon-banner-sub">spins remaining</div>
+          </div>
+        </div>
+
+        <div class="how-to-start">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-text">Purchase Rush Royale items on the MY.GAMES Market.</div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-text">Every purchase during the event contributes a spin coupon.</div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-text">Prizes are automatically credited to your account after each spin.</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;padding-bottom:32px;">
+          <button class="btn-outlined">Go shopping</button>
+          <button class="btn-dev" id="btnAddCoupons" style="width:auto;flex:1;">+ 10 coupons (test)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legal -->
+  <div class="legal">
+    By making purchases on MY.GAMES Market during the event, you accept <a href="#">Terms and conditions</a>.
+  </div>
+</div>
+
+<!-- ==================== MODAL ==================== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" id="btnModalClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="modal-top">
+      <div class="modal-game-row">
+        <img class="modal-game-icon" src="rush-royale-logo.png" alt="Rush Royale">
+        <span>Rush Royale</span>
+      </div>
+      <div>
+        <div class="modal-received">You received</div>
+        <div class="modal-prize" id="prizeText">—</div>
+      </div>
+    </div>
+    <div class="modal-reward-icon">
+      <img id="modalPrizeIcon" src="" alt="" style="width:120px;height:120px;object-fit:contain;display:none;">
+    </div>
+    <div class="modal-buttons">
+      <button class="btn-claim" id="btnClaim">Back to market</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script>
+(() => {
+  /* ======================= CONFIG ======================= */
+  /*
+   * Single source of truth — edit weights here to change drop rates.
+   * weight = chance out of 100 (must sum to 100).
+   */
+  const prizesConfig = [
+    { name: '25% Discount',   wheelText: '25%\nDiscount',    color: '#005aff', icon: 'icons/discount.png',  weight:  5 },
+    { name: '100 Platinum',   wheelText: '100\nPlatinum',    color: '#642ab5', icon: 'icons/platinum.png',  weight: 15 },
+    { name: 'Legendary Item', wheelText: 'Legendary\nItem',  color: '#003dad', icon: 'icons/legendary.png', weight:  5 },
+    { name: '8 Spheres',      wheelText: '8\nSpheres',       color: '#51258f', icon: 'icons/spheres.png',   weight:  5 },
+    { name: '200 Cores',      wheelText: '200\nCores',       color: '#005aff', icon: 'icons/cores.png',     weight:  5 },
+    { name: '4 Spheres',      wheelText: '4\nSpheres',       color: '#642ab5', icon: 'icons/spheres.png',   weight: 10 },
+    { name: '50 Platinum',    wheelText: '50\nPlatinum',     color: '#003dad', icon: 'icons/platinum.png',  weight: 30 },
+    { name: 'Premium 30 days',wheelText: 'Premium\n30 days', color: '#51258f', icon: 'icons/premium.png',   weight: 25 },
+  ];
+
+  /* Build cumulative ranges automatically from weights */
+  let _cum = 0;
+  prizesConfig.forEach(p => {
+    p.rangeMin = _cum + 1;
+    _cum += p.weight;
+    p.rangeMax = _cum;
+  });
+  // Sanity check
+  if (_cum !== 100) console.warn(`⚠ prizesConfig weights sum to ${_cum}, expected 100`);
+
+  /* Derived arrays used by wheel drawing (keep backward compat) */
+  const SEGMENTS      = prizesConfig.map(p => ({ text: p.wheelText, color: p.color, icon: p.icon }));
+  const DISPLAY_NAMES = prizesConfig.map(p => p.name);
+
+  const NUM    = SEGMENTS.length;
+  const ARC    = (2 * Math.PI) / NUM;
+  const RADIUS = 180;
+
+  /* Pity Timer */
+  const LEGENDARY_IDX   = 2;   // index of 'Legendary Item' in prizesConfig
+  const PITY_THRESHOLD  = 10;  // guaranteed legendary after this many spins
+  let spinsSinceLastLegendary = 0;
+
+  /* Session analytics */
+  let totalSpins   = 0;
+  const sessionStartTime = Date.now();
+
+  let coupons   = 3;
+  let spinning  = false;
+  let angle     = 0;
+
+  /* ======================= DOM ======================= */
+  const canvas      = document.getElementById('wheel');
+  const ctx         = canvas.getContext('2d');
+  const btnSpin     = document.getElementById('btnSpin');
+  const couponEl    = document.getElementById('couponCount');
+  const noCoupMsg   = document.getElementById('noCouponsMsg');
+  const modalOvrl   = document.getElementById('modalOverlay');
+  const prizeText   = document.getElementById('prizeText');
+  const btnClaim    = document.getElementById('btnClaim');
+  const confettiCvs = document.getElementById('confetti');
+  const confettiCtx = confettiCvs.getContext('2d');
+
+  /* ======================= RIM TICKS ======================= */
+  const ticks = [];
+  (() => {
+    const rim = document.getElementById('wheelRim');
+    for (let i = 0; i < 36; i++) {
+      const t = document.createElement('div');
+      t.className = 'tick';
+      t.style.transform = `rotate(${i * 10}deg)`;
+      rim.appendChild(t);
+      ticks.push(t);
+    }
+    function updateTickOrigin() {
+      const rimH = rim.offsetHeight;
+      const origin = (rimH / 2) - 3;
+      ticks.forEach(t => { t.style.transformOrigin = `1px ${origin}px`; });
+    }
+    updateTickOrigin();
+    addEventListener('resize', updateTickOrigin);
+  })();
+
+  /* ======================= DRAW WHEEL ======================= */
+  function drawWheel(rot) {
+    const cx = RADIUS, cy = RADIUS;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(rot);
+
+    for (let i = 0; i < NUM; i++) {
+      const sa = i * ARC - Math.PI / 2;
+      const ea = sa + ARC;
+
+      const g = ctx.createRadialGradient(0, 0, 18, 0, 0, RADIUS);
+      g.addColorStop(0, lighten(SEGMENTS[i].color, 20));
+      g.addColorStop(0.6, SEGMENTS[i].color);
+      g.addColorStop(1, darken(SEGMENTS[i].color, 20));
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, RADIUS, sa, ea);
+      ctx.closePath();
+      ctx.fillStyle = g;
+      ctx.fill();
+
+      // Divider
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(sa) * RADIUS, Math.sin(sa) * RADIUS);
+      ctx.strokeStyle = 'rgba(255,255,255,.06)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Icon + Text (stacked radially: icon near rim, text near center)
+      ctx.save();
+      ctx.rotate(sa + ARC / 2);
+
+      const hasIcon = SEGMENTS[i].img && SEGMENTS[i].img.naturalWidth > 0;
+      const iconSize = 34;
+
+      // — Icon (near rim, prominent) —
+      if (hasIcon) {
+        const iconR = RADIUS * 0.73;
+        ctx.shadowColor = 'rgba(0,0,0,.5)';
+        ctx.shadowBlur = 6;
+        ctx.drawImage(SEGMENTS[i].img, iconR - iconSize / 2, -iconSize / 2, iconSize, iconSize);
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+      }
+
+      // — Text (closer to center, compact) —
+      ctx.textAlign = 'center';
+      const lines = SEGMENTS[i].text.split('\n');
+      const fs = hasIcon ? 11 : 13;
+      const lh = fs + 2;
+      const tr = hasIcon ? RADIUS * 0.45 : RADIUS * 0.64;
+      const oy = -((lines.length - 1) * lh) / 2;
+
+      // Value line (first) — bolder, white
+      ctx.font = `700 ${fs}px Inter, sans-serif`;
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = 'rgba(0,0,0,.45)';
+      ctx.shadowBlur = 2;
+      ctx.fillText(lines[0], tr, oy + fs * 0.35);
+
+      // Label line (second) — lighter, subdued
+      if (lines.length > 1) {
+        ctx.font = `500 ${fs - 1}px Inter, sans-serif`;
+        ctx.fillStyle = 'rgba(255,255,255,.7)';
+        ctx.fillText(lines[1], tr, oy + lh + fs * 0.35);
+      }
+
+      ctx.restore();
+    }
+
+    // Inner shadow (subtle, doesn't darken icons)
+    const sh = ctx.createRadialGradient(0, 0, RADIUS * 0.88, 0, 0, RADIUS);
+    sh.addColorStop(0, 'rgba(0,0,0,0)');
+    sh.addColorStop(1, 'rgba(0,0,0,.2)');
+    ctx.beginPath();
+    ctx.arc(0, 0, RADIUS, 0, Math.PI * 2);
+    ctx.fillStyle = sh;
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  /* ======================= SPIN LOGIC ======================= */
+  const debugPanel  = document.getElementById('debugPanel');
+  const debugNumber = document.getElementById('debugNumber');
+  const debugRange  = document.getElementById('debugRange');
+  const debugResult = document.getElementById('debugResult');
+  const debugPity       = document.getElementById('debugPity');
+  const debugTotalSpins = document.getElementById('debugTotalSpins');
+  const debugAvgSpins   = document.getElementById('debugAvgSpins');
+  const analyticsLog    = document.getElementById('analyticsLog');
+  const pityCounter     = document.getElementById('pityCounter');
+  const pityBarFill     = document.getElementById('pityBarFill');
+
+  /* ======================= ANALYTICS ======================= */
+  function trackEvent(eventName, data) {
+    const ts = new Date().toLocaleTimeString('en-GB');
+    const extra = data ? ' ' + JSON.stringify(data) : '';
+    const msg = `[Analytics] Event: ${eventName}${extra}`;
+    console.log(msg);
+
+    // Append to debug panel log
+    const entry = document.createElement('div');
+    entry.innerHTML = `<span class="tag">[${ts}]</span> ${eventName}${extra}`;
+    analyticsLog.appendChild(entry);
+    analyticsLog.scrollTop = analyticsLog.scrollHeight;
+
+    // Show debug panel when events arrive
+    debugPanel.style.opacity = '1';
+  }
+
+  function updateSessionStats() {
+    debugTotalSpins.textContent = totalSpins;
+    const elapsedMin = (Date.now() - sessionStartTime) / 60000;
+    const avg = elapsedMin > 0 ? (totalSpins / elapsedMin).toFixed(2) : '0';
+    debugAvgSpins.textContent = avg;
+  }
+
+  function updatePityUI() {
+    const val = spinsSinceLastLegendary;
+    pityCounter.textContent = val;
+    pityBarFill.style.width = `${(val / PITY_THRESHOLD) * 100}%`;
+    // Glow when close to guarantee
+    if (val >= PITY_THRESHOLD) {
+      pityBarFill.classList.add('ready');
+    } else {
+      pityBarFill.classList.remove('ready');
+    }
+  }
+
+  btnSpin.addEventListener('click', () => {
+    if (coupons <= 0 && !spinning) {
+      trackEvent('spin_attempt_no_coupons', { coupons: 0 });
+      return;
+    }
+    startSpin();
+  });
+  btnClaim.addEventListener('click', closeModal);
+  document.getElementById('btnModalClose').addEventListener('click', closeModal);
+  document.getElementById('btnAddCoupons').addEventListener('click', () => {
+    coupons += 10;
+    updateCouponsUI();
+  });
+
+  document.getElementById('btnUpsell').addEventListener('click', () => {
+    trackEvent('Shop_Redirect_from_Wheel');
+  });
+
+  let _lastPrizeName = '';
+  let _lastIsPityWin = false;
+
+  function rollPrize() {
+    const rnd = Math.floor(Math.random() * 100) + 1; // 1–100
+    let winIdx = 0;
+    for (let i = 0; i < prizesConfig.length; i++) {
+      if (rnd >= prizesConfig[i].rangeMin && rnd <= prizesConfig[i].rangeMax) {
+        winIdx = i;
+        break;
+      }
+    }
+    return { rnd, winIdx };
+  }
+
+  function startSpin() {
+    if (spinning || coupons <= 0) return;
+    spinning = true;
+    coupons--;
+    totalSpins++;
+    updateCouponsUI();
+    updateSessionStats();
+
+    // Analytics: spin started
+    trackEvent('spin_started', { spinNumber: totalSpins, couponsLeft: coupons });
+
+    // 1. Determine prize — apply Pity Timer if threshold reached
+    let isPityWin = false;
+    let rnd, winIdx;
+
+    if (spinsSinceLastLegendary >= PITY_THRESHOLD) {
+      // Forced legendary
+      isPityWin = true;
+      rnd = '—';
+      winIdx = LEGENDARY_IDX;
+    } else {
+      ({ rnd, winIdx } = rollPrize());
+    }
+
+    // 2. Update pity counter
+    spinsSinceLastLegendary++;
+    if (winIdx === LEGENDARY_IDX) {
+      spinsSinceLastLegendary = 0;
+    }
+    updatePityUI();
+
+    const prize = prizesConfig[winIdx];
+    const pityTag = isPityWin ? ' ★ PITY WIN!' : '';
+
+    // Store for onSpinEnd analytics
+    _lastPrizeName = prize.name;
+    _lastIsPityWin = isPityWin;
+
+    // Debug output
+    console.log(`[Debug] Number: ${rnd} | Range: ${prize.rangeMin}–${prize.rangeMax} (${prize.weight}%) | Result: ${prize.name}${pityTag} | Pity: ${spinsSinceLastLegendary}/${PITY_THRESHOLD}`);
+    debugNumber.textContent  = rnd;
+    debugRange.textContent   = `${prize.rangeMin}–${prize.rangeMax} (${prize.weight}%)`;
+    debugResult.textContent  = prize.name + pityTag;
+    debugPity.textContent    = `${spinsSinceLastLegendary}/${PITY_THRESHOLD}`;
+    debugPanel.style.opacity = '1';
+
+    // 2. Calculate target angle so pointer (top) lands in the middle of winIdx sector
+    //    Sector i center angle (from 12-o'clock, CW) = i * ARC + ARC/2
+    //    Pointer is at top (12-o'clock). After rotation by `angle`, the sector under the
+    //    pointer satisfies: (-angle) mod 2π falls inside sector i's arc.
+    //    We need: (-targetAngle) mod 2π ≈ winIdx * ARC + ARC/2
+    //    So targetAngle ≈ -(winIdx * ARC + ARC/2) + small random jitter inside sector
+    const jitter      = (Math.random() - 0.5) * ARC * 0.7;  // stay within sector
+    const sectorAngle = winIdx * ARC + ARC / 2 + jitter;
+    const targetRaw   = -sectorAngle;
+
+    // 3. Add full turns for impressive spin (5–8 full rotations forward from current)
+    const fullTurns = (5 + Math.random() * 3) * Math.PI * 2;
+    // Normalize so we always spin forward (increasing angle)
+    let target = angle + fullTurns;
+    // Adjust final position to match targetRaw mod 2π
+    const desiredMod = ((targetRaw % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+    const currentMod = ((target  % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+    let correction   = desiredMod - currentMod;
+    if (correction < 0) correction += Math.PI * 2;
+    target += correction;
+
+    const start = angle;
+    const dist  = target - start;
+    const dur   = 5000 + Math.random() * 2000;
+    const t0    = performance.now();
+
+    function ease(t) { return 1 - Math.pow(1 - t, 5); }
+
+    function frame(now) {
+      const p = Math.min((now - t0) / dur, 1);
+      angle = start + dist * ease(p);
+      drawWheel(angle);
+      if (p < 1) requestAnimationFrame(frame);
+      else { spinning = false; onSpinEnd(winIdx); }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function onSpinEnd(winIdx) {
+    // Analytics: prize received
+    trackEvent('prize_received', {
+      prize: _lastPrizeName,
+      pityWin: _lastIsPityWin
+    });
+    launchConfetti();
+    setTimeout(() => showModal(winIdx), 400);
+  }
+
+  /* ======================= UI ======================= */
+  const modalPrizeIcon = document.getElementById('modalPrizeIcon');
+
+  const upsellOffer = document.getElementById('upsellOffer');
+
+  function updateCouponsUI() {
+    couponEl.textContent = coupons;
+    btnSpin.disabled = coupons <= 0;
+    noCoupMsg.classList.toggle('visible', coupons <= 0);
+    upsellOffer.classList.toggle('visible', coupons <= 0);
+  }
+
+  function showModal(idx) {
+    prizeText.textContent = DISPLAY_NAMES[idx];
+    // Show prize icon from icons/ folder
+    const iconPath = SEGMENTS[idx].icon;
+    if (iconPath) {
+      modalPrizeIcon.src = iconPath;
+      modalPrizeIcon.style.display = 'block';
+    } else {
+      modalPrizeIcon.style.display = 'none';
+    }
+    modalOvrl.classList.add('active');
+  }
+
+  function closeModal() {
+    modalOvrl.classList.remove('active');
+  }
+
+  // Close modal when clicking the overlay backdrop
+  modalOvrl.addEventListener('click', (e) => {
+    if (e.target === modalOvrl) closeModal();
+  });
+
+  /* ======================= CONFETTI ======================= */
+  function resizeConfetti() {
+    confettiCvs.width  = innerWidth;
+    confettiCvs.height = innerHeight;
+  }
+  addEventListener('resize', resizeConfetti);
+  resizeConfetti();
+
+  let parts = [], cAnim = null;
+
+  function launchConfetti() {
+    parts = [];
+    const cols = ['#005aff','#642ab5','#ffc700','#dc0050','#52c41a','#ff5811','#cb2b83','#13a8a8'];
+    for (let i = 0; i < 180; i++) {
+      parts.push({
+        x: innerWidth / 2 + (Math.random() - .5) * 280,
+        y: innerHeight / 2 - 180,
+        w: 5 + Math.random() * 5, h: 3 + Math.random() * 4,
+        vx: (Math.random() - .5) * 15, vy: -(Math.random() * 13 + 4),
+        r: Math.random() * 360, rv: (Math.random() - .5) * 11,
+        c: cols[Math.floor(Math.random() * cols.length)],
+        g: .17 + Math.random() * .07, l: 1, d: .006 + Math.random() * .004,
+      });
+    }
+    if (cAnim) cancelAnimationFrame(cAnim);
+    drawConfetti();
+  }
+
+  function drawConfetti() {
+    confettiCtx.clearRect(0, 0, confettiCvs.width, confettiCvs.height);
+    let alive = false;
+    parts.forEach(p => {
+      if (p.l <= 0) return;
+      alive = true;
+      p.vy += p.g; p.x += p.vx; p.y += p.vy;
+      p.r += p.rv; p.vx *= .99; p.l -= p.d;
+      confettiCtx.save();
+      confettiCtx.translate(p.x, p.y);
+      confettiCtx.rotate(p.r * Math.PI / 180);
+      confettiCtx.globalAlpha = Math.max(p.l, 0);
+      confettiCtx.fillStyle = p.c;
+      confettiCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      confettiCtx.restore();
+    });
+    if (alive) cAnim = requestAnimationFrame(drawConfetti);
+    else confettiCtx.clearRect(0, 0, confettiCvs.width, confettiCvs.height);
+  }
+
+  /* ======================= HELPERS ======================= */
+  function lighten(hex, pct) {
+    let [r, g, b] = [1,3,5].map(i => parseInt(hex.slice(i, i+2), 16));
+    return `rgb(${[r,g,b].map(c => Math.min(255, c + Math.round((255-c)*pct/100))).join(',')})`;
+  }
+  function darken(hex, pct) {
+    let [r, g, b] = [1,3,5].map(i => parseInt(hex.slice(i, i+2), 16));
+    return `rgb(${[r,g,b].map(c => Math.max(0, c - Math.round(c*pct/100))).join(',')})`;
+  }
+
+  /* ======================= PRELOAD ICONS ======================= */
+  let imagesLoaded = 0;
+  SEGMENTS.forEach(seg => {
+    const img = new Image();
+    img.onload = img.onerror = () => {
+      imagesLoaded++;
+      if (imagesLoaded === NUM) {
+        drawWheel(angle);
+        updateCouponsUI();
+      }
+    };
+    img.src = seg.icon;
+    seg.img = img;
+  });
+
+  /* ======================= INIT (fallback if no images) ======================= */
+  drawWheel(angle);
+  updateCouponsUI();
+  updatePityUI();
+  updateSessionStats();
+  trackEvent('page_loaded', { coupons });
+})();
+</script>
+</body>
+</html>
