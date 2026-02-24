@@ -1,7 +1,7 @@
 # API Specification — Daily Spin Wheel
 
 **Версия:** 1.0  
-**Последнее обновление:** 2024  
+**Последнее обновление:** 24 февраля 2026  
 **Базовый URL:** `https://api.my.games/wheel`
 
 ---
