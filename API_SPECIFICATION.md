@@ -21,14 +21,40 @@
 
 ## Структура базы данных
 
+### Таблица: `wheel_showcase_config`
+
+Связь витрин с играми. Колесо фортуны располагается на витрине, которая привязана к игре.
+
+```sql
+CREATE TABLE wheel_showcase_config (
+  showcase_id INT PRIMARY KEY,
+  game_id INT NOT NULL,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  
+  INDEX idx_game (game_id),
+  FOREIGN KEY (game_id) REFERENCES games(game_id)
+);
+```
+
+**Поля:**
+- `showcase_id` — уникальный идентификатор витрины (например, 125)
+- `game_id` — идентификатор игры, к которой привязана витрина
+- `is_active` — активна ли витрина
+- `created_at` — время создания записи
+- `updated_at` — время последнего обновления
+
+---
+
 ### Таблица: `wheel_user_state`
 
-Хранит текущее состояние каждого пользователя для колеса фортуны.
+Хранит текущее состояние каждого пользователя для колеса фортуны на конкретной витрине.
 
 ```sql
 CREATE TABLE wheel_user_state (
-  user_id VARCHAR(255) PRIMARY KEY,
-  game_id INT NOT NULL,
+  user_id VARCHAR(255) NOT NULL,
+  showcase_id INT NOT NULL,
   coupons INT NOT NULL DEFAULT 0,
   pity_counter INT NOT NULL DEFAULT 0,
   total_spins INT NOT NULL DEFAULT 0,
@@ -36,17 +62,19 @@ CREATE TABLE wheel_user_state (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   
-  INDEX idx_game_user (game_id, user_id),
-  INDEX idx_last_spin (last_spin_at)
+  PRIMARY KEY (user_id, showcase_id),
+  INDEX idx_showcase_user (showcase_id, user_id),
+  INDEX idx_last_spin (last_spin_at),
+  FOREIGN KEY (showcase_id) REFERENCES wheel_showcase_config(showcase_id)
 );
 ```
 
 **Поля:**
 - `user_id` — уникальный идентификатор пользователя
-- `game_id` — идентификатор игры (например, 125 для Rush Royale)
+- `showcase_id` — идентификатор витрины (например, 125)
 - `coupons` — текущее количество купонов на спин
 - `pity_counter` — счетчик спинов с момента последнего легендарного приза (0-10)
-- `total_spins` — общее количество спинов пользователя
+- `total_spins` — общее количество спинов пользователя на этой витрине
 - `last_spin_at` — время последнего спина (NULL, если спинов не было)
 - `created_at` — время создания записи
 - `updated_at` — время последнего обновления
@@ -61,7 +89,7 @@ CREATE TABLE wheel_user_state (
 CREATE TABLE wheel_spin_history (
   spin_id VARCHAR(255) PRIMARY KEY,
   user_id VARCHAR(255) NOT NULL,
-  game_id INT NOT NULL,
+  showcase_id INT NOT NULL,
   prize_id INT NOT NULL,
   prize_name VARCHAR(255) NOT NULL,
   is_pity_win BOOLEAN DEFAULT FALSE,
@@ -73,16 +101,17 @@ CREATE TABLE wheel_spin_history (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   
   INDEX idx_user_created (user_id, created_at),
-  INDEX idx_game_created (game_id, created_at),
+  INDEX idx_showcase_created (showcase_id, created_at),
   INDEX idx_prize (prize_id),
-  INDEX idx_pity_win (is_pity_win)
+  INDEX idx_pity_win (is_pity_win),
+  FOREIGN KEY (showcase_id) REFERENCES wheel_showcase_config(showcase_id)
 );
 ```
 
 **Поля:**
 - `spin_id` — уникальный идентификатор спина (UUID или аналогичный)
 - `user_id` — идентификатор пользователя
-- `game_id` — идентификатор игры
+- `showcase_id` — идентификатор витрины
 - `prize_id` — ID выигранного приза (соответствует `prize_id` из `wheel_prize_config`)
 - `prize_name` — название приза (для быстрого доступа без JOIN)
 - `is_pity_win` — флаг, указывающий, был ли приз выдан через Pity Timer
@@ -102,7 +131,7 @@ CREATE TABLE wheel_spin_history (
 ```sql
 CREATE TABLE wheel_prize_config (
   prize_id INT PRIMARY KEY AUTO_INCREMENT,
-  game_id INT NOT NULL,
+  showcase_id INT NOT NULL,
   name VARCHAR(255) NOT NULL,
   wheel_text VARCHAR(255) NOT NULL,
   color VARCHAR(7) NOT NULL,  -- hex color code
@@ -114,19 +143,20 @@ CREATE TABLE wheel_prize_config (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   
-  INDEX idx_game_active (game_id, is_active),
-  INDEX idx_version (version)
+  INDEX idx_showcase_active (showcase_id, is_active),
+  INDEX idx_version (version),
+  FOREIGN KEY (showcase_id) REFERENCES wheel_showcase_config(showcase_id)
 );
 ```
 
 **Поля:**
 - `prize_id` — уникальный идентификатор приза
-- `game_id` — идентификатор игры (разные игры могут иметь разные наборы призов)
+- `showcase_id` — идентификатор витрины (разные витрины могут иметь разные наборы призов)
 - `name` — название приза (отображается в модальном окне)
 - `wheel_text` — текст на секторе колеса (поддерживает `\n` для переноса)
 - `color` — цвет сектора (hex-код, например `#005aff`)
 - `icon_path` — путь к иконке приза
-- `weight` — вес вероятности (должен суммироваться до 100 для всех активных призов игры)
+- `weight` — вес вероятности (должен суммироваться до 100 для всех активных призов витрины)
 - `is_active` — активен ли приз (можно временно отключить)
 - `display_order` — порядок отображения на колесе (0 = первый сектор, 7 = последний)
 - `version` — версия конфигурации (для кеширования на клиенте)
@@ -134,33 +164,34 @@ CREATE TABLE wheel_prize_config (
 - `updated_at` — время последнего обновления
 
 **Ограничения:**
-- Для каждого `game_id` сумма `weight` всех активных призов должна равняться 100
-- Для каждого `game_id` должно быть ровно 8 активных призов
-- `display_order` должен быть уникальным для каждого `game_id` (0-7)
+- Для каждого `showcase_id` сумма `weight` всех активных призов должна равняться 100
+- Для каждого `showcase_id` должно быть ровно 8 активных призов
+- `display_order` должен быть уникальным для каждого `showcase_id` (0-7)
 
 ---
 
 ### Таблица: `wheel_pity_config`
 
-Конфигурация Pity Timer для каждой игры.
+Конфигурация Pity Timer для каждой витрины.
 
 ```sql
 CREATE TABLE wheel_pity_config (
-  game_id INT PRIMARY KEY,
+  showcase_id INT PRIMARY KEY,
   legendary_prize_id INT NOT NULL,  -- prize_id легендарного приза
   threshold INT NOT NULL DEFAULT 10,  -- количество спинов до гарантии
   is_enabled BOOLEAN DEFAULT TRUE,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   
+  FOREIGN KEY (showcase_id) REFERENCES wheel_showcase_config(showcase_id),
   FOREIGN KEY (legendary_prize_id) REFERENCES wheel_prize_config(prize_id)
 );
 ```
 
 **Поля:**
-- `game_id` — идентификатор игры
+- `showcase_id` — идентификатор витрины
 - `legendary_prize_id` — ID приза, который гарантируется через Pity Timer
 - `threshold` — порог спинов (по умолчанию 10)
-- `is_enabled` — включен ли Pity Timer для этой игры
+- `is_enabled` — включен ли Pity Timer для этой витрины
 - `updated_at` — время последнего обновления
 
 ---
@@ -182,12 +213,12 @@ Content-Type: application/json
 **Тело запроса:**
 ```json
 {
-  "gameId": 125
+  "showcaseId": 125
 }
 ```
 
 **Параметры:**
-- `gameId` (integer, required) — идентификатор игры
+- `showcaseId` (integer, required) — идентификатор витрины
 
 **Ответ (200 OK):**
 ```json
@@ -318,23 +349,24 @@ Content-Type: application/json
 
 ### GET /wheel/config
 
-Возвращает текущую конфигурацию колеса для указанной игры (список призов, их веса, иконки).
+Возвращает текущую конфигурацию колеса для указанной витрины (список призов, их веса, иконки).
 
 **Авторизация:** Не требуется (публичный эндпоинт)
 
 **Параметры запроса:**
-- `gameId` (integer, required) — идентификатор игры
+- `showcaseId` (integer, required) — идентификатор витрины
 
 **Пример запроса:**
 ```
-GET /wheel/config?gameId=125
+GET /wheel/config?showcaseId=125
 ```
 
 **Ответ (200 OK):**
 ```json
 {
   "success": true,
-  "gameId": 125,
+  "showcaseId": 125,
+  "gameId": 42,
   "version": "1.2.0",
   "updatedAt": "2024-01-15T09:00:00Z",
   "pityTimer": {
@@ -440,7 +472,8 @@ GET /wheel/config?gameId=125
 | Поле | Тип | Описание |
 |------|-----|----------|
 | `success` | boolean | Успешность операции |
-| `gameId` | integer | Идентификатор игры |
+| `showcaseId` | integer | Идентификатор витрины |
+| `gameId` | integer | Идентификатор игры, к которой привязана витрина |
 | `version` | string | Версия конфигурации (для кеширования) |
 | `updatedAt` | string | ISO 8601 timestamp последнего обновления |
 | `pityTimer.enabled` | boolean | Включен ли Pity Timer |
@@ -459,12 +492,12 @@ GET /wheel/config?gameId=125
 
 **Ошибки:**
 
-**400 Bad Request** — Неверный gameId:
+**400 Bad Request** — Неверный showcaseId:
 ```json
 {
   "success": false,
-  "error": "INVALID_GAME_ID",
-  "message": "Game ID not found"
+  "error": "INVALID_SHOWCASE_ID",
+  "message": "Showcase ID not found"
 }
 ```
 
@@ -473,7 +506,7 @@ GET /wheel/config?gameId=125
 {
   "success": false,
   "error": "CONFIG_NOT_FOUND",
-  "message": "Wheel configuration not found for this game"
+  "message": "Wheel configuration not found for this showcase"
 }
 ```
 
@@ -488,11 +521,11 @@ GET /wheel/config?gameId=125
 **Авторизация:** Требуется (Bearer Token)
 
 **Параметры запроса:**
-- `gameId` (integer, required) — идентификатор игры
+- `showcaseId` (integer, required) — идентификатор витрины
 
 **Пример запроса:**
 ```
-GET /wheel/state?gameId=125
+GET /wheel/state?showcaseId=125
 Authorization: Bearer <user_token>
 ```
 
@@ -500,7 +533,8 @@ Authorization: Bearer <user_token>
 ```json
 {
   "success": true,
-  "gameId": 125,
+  "showcaseId": 125,
+  "gameId": 42,
   "coupons": {
     "current": 3,
     "totalEarned": 15,
@@ -529,13 +563,13 @@ Authorization: Bearer <user_token>
 **Авторизация:** Требуется (Bearer Token)
 
 **Параметры запроса:**
-- `gameId` (integer, required) — идентификатор игры
+- `showcaseId` (integer, required) — идентификатор витрины
 - `limit` (integer, optional) — количество записей (по умолчанию 20, максимум 100)
 - `offset` (integer, optional) — смещение для пагинации (по умолчанию 0)
 
 **Пример запроса:**
 ```
-GET /wheel/history?gameId=125&limit=10&offset=0
+GET /wheel/history?showcaseId=125&limit=10&offset=0
 Authorization: Bearer <user_token>
 ```
 
@@ -543,7 +577,8 @@ Authorization: Bearer <user_token>
 ```json
 {
   "success": true,
-  "gameId": 125,
+  "showcaseId": 125,
+  "gameId": 42,
   "total": 42,
   "limit": 10,
   "offset": 0,
@@ -576,7 +611,7 @@ Authorization: Bearer <user_token>
 | Код | HTTP Status | Описание |
 |-----|-------------|----------|
 | `INSUFFICIENT_COUPONS` | 400 | Недостаточно купонов для спина |
-| `INVALID_GAME_ID` | 400 | Неверный идентификатор игры |
+| `INVALID_SHOWCASE_ID` | 400 | Неверный идентификатор витрины |
 | `UNAUTHORIZED` | 401 | Недействительный или отсутствующий токен |
 | `FORBIDDEN` | 403 | Доступ запрещен |
 | `CONFIG_NOT_FOUND` | 404 | Конфигурация не найдена |
@@ -598,7 +633,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 Content-Type: application/json
 
 {
-  "gameId": 125
+  "showcaseId": 125
 }
 ```
 
@@ -644,7 +679,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 Content-Type: application/json
 
 {
-  "gameId": 125
+  "showcaseId": 125
 }
 ```
 
@@ -684,7 +719,7 @@ Content-Type: application/json
 
 **Запрос:**
 ```http
-GET /wheel/config?gameId=125 HTTP/1.1
+GET /wheel/config?showcaseId=125 HTTP/1.1
 Host: api.my.games
 ```
 
@@ -697,10 +732,10 @@ Host: api.my.games
 ### Логика на сервере
 
 ```python
-def determine_prize(user_id, game_id):
+def determine_prize(user_id, showcase_id):
     # 1. Получить состояние пользователя
-    state = get_user_state(user_id, game_id)
-    pity_config = get_pity_config(game_id)
+    state = get_user_state(user_id, showcase_id)
+    pity_config = get_pity_config(showcase_id)
     
     # 2. Проверить Pity Timer
     if pity_config.is_enabled and state.pity_counter >= pity_config.threshold:
@@ -711,7 +746,7 @@ def determine_prize(user_id, game_id):
     else:
         # Обычный случайный выбор
         random_number = generate_random(1, 100)  # CSPRNG
-        prize = select_prize_by_weight(game_id, random_number)
+        prize = select_prize_by_weight(showcase_id, random_number)
         is_pity_win = False
     
     # 3. Обновить состояние
@@ -726,7 +761,7 @@ def determine_prize(user_id, game_id):
     # 4. Сохранить в историю
     save_spin_history(
         user_id=user_id,
-        game_id=game_id,
+        showcase_id=showcase_id,
         prize_id=prize.prize_id,
         is_pity_win=is_pity_win,
         random_number=random_number,
@@ -764,7 +799,8 @@ def determine_prize(user_id, game_id):
    - Возвращайте `429 Too Many Requests` при превышении
 
 4. **Валидация:**
-   - Проверяйте `gameId` на существование
+   - Проверяйте `showcaseId` на существование
+   - Проверяйте, что витрина активна (`is_active = TRUE`)
    - Валидируйте токен аутентификации
    - Проверяйте баланс купонов перед каждым спином
 

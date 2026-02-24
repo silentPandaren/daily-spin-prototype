@@ -380,10 +380,12 @@ Content-Type: application/json
 **Тело запроса:**
 ```json
 {
-  "gameId": "125",
+  "showcaseId": 125,
   "eventId": "daily-spin"
 }
 ```
+
+**Примечание:** `showcaseId` — это идентификатор витрины, на которой расположено колесо. Витрина привязана к игре через таблицу `wheel_showcase_config`.
 
 **Ответ (200 OK):**
 ```json
@@ -596,21 +598,42 @@ const signature = crypto
 
 #### `user_spin_state`
 ```sql
+CREATE TABLE wheel_showcase_config (
+  showcase_id INT PRIMARY KEY,
+  game_id INT NOT NULL,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_game (game_id)
+);
+```
+
+**Примечание:** Колесо фортуны располагается на витрине (`showcase`), которая привязана к игре. Витрина может иметь свой уникальный набор призов и настроек.
+
+#### `user_spin_state`
+```sql
 CREATE TABLE user_spin_state (
-  user_id VARCHAR(255) PRIMARY KEY,
+  user_id VARCHAR(255) NOT NULL,
+  showcase_id INT NOT NULL,
   coupons INT NOT NULL DEFAULT 0,
   pity_counter INT NOT NULL DEFAULT 0,
   total_spins INT NOT NULL DEFAULT 0,
   last_spin_at TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, showcase_id),
+  INDEX idx_showcase_user (showcase_id, user_id),
+  FOREIGN KEY (showcase_id) REFERENCES wheel_showcase_config(showcase_id)
 );
 ```
+
+**Примечание:** Состояние пользователя хранится отдельно для каждой витрины, так как пользователь может иметь разные счетчики pity и купоны на разных витринах.
 
 #### `spin_transactions`
 ```sql
 CREATE TABLE spin_transactions (
   spin_id VARCHAR(255) PRIMARY KEY,
   user_id VARCHAR(255) NOT NULL,
+  showcase_id INT NOT NULL,
   prize_id INT NOT NULL,
   pity_win BOOLEAN DEFAULT FALSE,
   coupons_before INT NOT NULL,
@@ -618,7 +641,9 @@ CREATE TABLE spin_transactions (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   confirmed_at TIMESTAMP,
   status ENUM('pending', 'confirmed', 'expired') DEFAULT 'pending',
-  INDEX idx_user_created (user_id, created_at)
+  INDEX idx_user_created (user_id, created_at),
+  INDEX idx_showcase_created (showcase_id, created_at),
+  FOREIGN KEY (showcase_id) REFERENCES wheel_showcase_config(showcase_id)
 );
 ```
 
@@ -626,6 +651,7 @@ CREATE TABLE spin_transactions (
 ```sql
 CREATE TABLE prize_config (
   prize_id INT PRIMARY KEY,
+  showcase_id INT NOT NULL,
   name VARCHAR(255) NOT NULL,
   wheel_text VARCHAR(255) NOT NULL,
   color VARCHAR(7) NOT NULL,
@@ -633,9 +659,13 @@ CREATE TABLE prize_config (
   weight INT NOT NULL,
   version INT NOT NULL,
   is_active BOOLEAN DEFAULT TRUE,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_showcase_active (showcase_id, is_active),
+  FOREIGN KEY (showcase_id) REFERENCES wheel_showcase_config(showcase_id)
 );
 ```
+
+**Примечание:** Каждая витрина может иметь свой уникальный набор призов с разными весами и иконками.
 
 ---
 
@@ -710,9 +740,18 @@ CREATE TABLE prize_config (
 @rate_limit(max_per_minute=20)
 def initiate_spin():
     user_id = get_current_user_id()
+    showcase_id = request.json.get('showcaseId')
+    
+    # Проверяем существование и активность витрины
+    showcase = get_showcase_config(showcase_id)
+    if not showcase or not showcase.is_active:
+        return jsonify({
+            "success": False,
+            "error": "INVALID_SHOWCASE_ID"
+        }), 400
     
     # Проверяем баланс купонов
-    state = get_user_spin_state(user_id)
+    state = get_user_spin_state(user_id, showcase_id)
     if state.coupons <= 0:
         return jsonify({
             "success": False,
@@ -720,7 +759,7 @@ def initiate_spin():
         }), 400
     
     # Определяем приз (на сервере)
-    prize = determine_prize(user_id, state.pity_counter)
+    prize = determine_prize(user_id, showcase_id, state.pity_counter)
     
     # Списываем купон
     state.coupons -= 1
@@ -739,6 +778,7 @@ def initiate_spin():
     create_spin_transaction(
         spin_id=spin_id,
         user_id=user_id,
+        showcase_id=showcase_id,
         prize_id=prize.id,
         pity_win=prize.pity_win,
         coupons_before=state.coupons + 1,
@@ -765,14 +805,17 @@ def initiate_spin():
         "couponsRemaining": state.coupons
     }), 200
 
-def determine_prize(user_id, pity_counter):
+def determine_prize(user_id, showcase_id, pity_counter):
+    # Получаем конфигурацию pity timer для этой витрины
+    pity_config = get_pity_config(showcase_id)
+    
     # Проверяем pity timer
-    if pity_counter >= PITY_THRESHOLD:
-        return get_prize_by_id(LEGENDARY_IDX, pity_win=True)
+    if pity_config.is_enabled and pity_counter >= pity_config.threshold:
+        return get_prize_by_id(pity_config.legendary_prize_id, pity_win=True)
     
     # Обычный случайный выбор (серверный CSPRNG)
     random_num = secrets.randbelow(100) + 1  # 1-100
-    prize = select_prize_by_weight(random_num)
+    prize = select_prize_by_weight(showcase_id, random_num)
     
     return prize
 ```

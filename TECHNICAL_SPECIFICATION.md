@@ -380,10 +380,12 @@ Content-Type: application/json
 **Request Body:**
 ```json
 {
-  "gameId": "125",
+  "showcaseId": 125,
   "eventId": "daily-spin"
 }
 ```
+
+**Note:** `showcaseId` is the identifier of the showcase where the wheel is located. The showcase is linked to a game through the `wheel_showcase_config` table. The wheel is located on a showcase, not directly on a game.
 
 **Response (200 OK):**
 ```json
@@ -594,23 +596,44 @@ const signature = crypto
 
 ### Database Schema (Suggested)
 
+#### `wheel_showcase_config`
+```sql
+CREATE TABLE wheel_showcase_config (
+  showcase_id INT PRIMARY KEY,
+  game_id INT NOT NULL,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_game (game_id)
+);
+```
+
+**Note:** The wheel of fortune is located on a showcase, which is linked to a game. A showcase can have its own unique set of prizes and settings.
+
 #### `user_spin_state`
 ```sql
 CREATE TABLE user_spin_state (
-  user_id VARCHAR(255) PRIMARY KEY,
+  user_id VARCHAR(255) NOT NULL,
+  showcase_id INT NOT NULL,
   coupons INT NOT NULL DEFAULT 0,
   pity_counter INT NOT NULL DEFAULT 0,
   total_spins INT NOT NULL DEFAULT 0,
   last_spin_at TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, showcase_id),
+  INDEX idx_showcase_user (showcase_id, user_id),
+  FOREIGN KEY (showcase_id) REFERENCES wheel_showcase_config(showcase_id)
 );
 ```
+
+**Note:** User state is stored separately for each showcase, as a user can have different pity counters and coupons on different showcases.
 
 #### `spin_transactions`
 ```sql
 CREATE TABLE spin_transactions (
   spin_id VARCHAR(255) PRIMARY KEY,
   user_id VARCHAR(255) NOT NULL,
+  showcase_id INT NOT NULL,
   prize_id INT NOT NULL,
   pity_win BOOLEAN DEFAULT FALSE,
   coupons_before INT NOT NULL,
@@ -618,7 +641,9 @@ CREATE TABLE spin_transactions (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   confirmed_at TIMESTAMP,
   status ENUM('pending', 'confirmed', 'expired') DEFAULT 'pending',
-  INDEX idx_user_created (user_id, created_at)
+  INDEX idx_user_created (user_id, created_at),
+  INDEX idx_showcase_created (showcase_id, created_at),
+  FOREIGN KEY (showcase_id) REFERENCES wheel_showcase_config(showcase_id)
 );
 ```
 
@@ -626,6 +651,7 @@ CREATE TABLE spin_transactions (
 ```sql
 CREATE TABLE prize_config (
   prize_id INT PRIMARY KEY,
+  showcase_id INT NOT NULL,
   name VARCHAR(255) NOT NULL,
   wheel_text VARCHAR(255) NOT NULL,
   color VARCHAR(7) NOT NULL,
@@ -633,9 +659,13 @@ CREATE TABLE prize_config (
   weight INT NOT NULL,
   version INT NOT NULL,
   is_active BOOLEAN DEFAULT TRUE,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_showcase_active (showcase_id, is_active),
+  FOREIGN KEY (showcase_id) REFERENCES wheel_showcase_config(showcase_id)
 );
 ```
+
+**Note:** Each showcase can have its own unique set of prizes with different weights and icons.
 
 ---
 
@@ -710,9 +740,18 @@ All API endpoints should return consistent error format:
 @rate_limit(max_per_minute=20)
 def initiate_spin():
     user_id = get_current_user_id()
+    showcase_id = request.json.get('showcaseId')
+    
+    # Validate showcase exists and is active
+    showcase = get_showcase_config(showcase_id)
+    if not showcase or not showcase.is_active:
+        return jsonify({
+            "success": False,
+            "error": "INVALID_SHOWCASE_ID"
+        }), 400
     
     # Check coupon balance
-    state = get_user_spin_state(user_id)
+    state = get_user_spin_state(user_id, showcase_id)
     if state.coupons <= 0:
         return jsonify({
             "success": False,
@@ -720,7 +759,7 @@ def initiate_spin():
         }), 400
     
     # Determine prize (server-side)
-    prize = determine_prize(user_id, state.pity_counter)
+    prize = determine_prize(user_id, showcase_id, state.pity_counter)
     
     # Deduct coupon
     state.coupons -= 1
@@ -739,6 +778,7 @@ def initiate_spin():
     create_spin_transaction(
         spin_id=spin_id,
         user_id=user_id,
+        showcase_id=showcase_id,
         prize_id=prize.id,
         pity_win=prize.pity_win,
         coupons_before=state.coupons + 1,
@@ -765,14 +805,17 @@ def initiate_spin():
         "couponsRemaining": state.coupons
     }), 200
 
-def determine_prize(user_id, pity_counter):
+def determine_prize(user_id, showcase_id, pity_counter):
+    # Get pity config for this showcase
+    pity_config = get_pity_config(showcase_id)
+    
     # Check pity timer
-    if pity_counter >= PITY_THRESHOLD:
-        return get_prize_by_id(LEGENDARY_IDX, pity_win=True)
+    if pity_config.is_enabled and pity_counter >= pity_config.threshold:
+        return get_prize_by_id(pity_config.legendary_prize_id, pity_win=True)
     
     # Normal random roll (server-side CSPRNG)
     random_num = secrets.randbelow(100) + 1  # 1-100
-    prize = select_prize_by_weight(random_num)
+    prize = select_prize_by_weight(showcase_id, random_num)
     
     return prize
 ```
